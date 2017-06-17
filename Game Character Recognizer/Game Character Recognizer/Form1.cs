@@ -18,6 +18,7 @@ namespace Game_Character_Recognizer
         Image<Bgr, byte> frame;
         string[] files;
         List<Image<Bgr, byte>> images = new List<Image<Bgr, byte>>();
+        bool recognize = true;
 
         public Form1()
         {
@@ -51,16 +52,19 @@ namespace Game_Character_Recognizer
         {
             try
             {
-                int i = 0;
                 frame = camera.QueryFrame().ToImage<Bgr, Byte>();
-                foreach (var image in images)
+                if (recognize)
                 {
-                    using (Mat modelImage = image.Mat)
-                    using (Mat observedImage = frame.Mat)
+                    int i = 0;
+                    foreach (var image in images)
                     {
-                        Draw(modelImage, observedImage, Path.GetFileName(files[i]));
+                        using (Mat modelImage = image.Mat)
+                        using (Mat observedImage = frame.Mat)
+                        {
+                            Draw(modelImage, observedImage, Path.GetFileName(files[i]));
+                        }
+                        i++;
                     }
-                    i++;
                 }
             }
             catch (Exception ex)
@@ -140,6 +144,40 @@ namespace Game_Character_Recognizer
                     frame.DrawPolyline(points, true, new Bgr(Color.Red), 2);
                     label1.Text = name.Substring(0, name.LastIndexOf('.'));
                 }
+            }
+        }
+
+        private void radioButton1_CheckedChanged(object sender, EventArgs e)
+        {
+            label1.Text = "";
+            label1.Visible = true;
+            button1.Visible = false;
+            textBox1.Visible = false;
+            label2.Visible = false;
+            recognize = true;
+        }
+
+        private void radioButton2_CheckedChanged(object sender, EventArgs e)
+        {
+            label1.Visible = false;
+            button1.Visible = true;
+            textBox1.Visible = true;
+            label2.Visible = true;
+            recognize = false;
+        }
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            Image<Bgr, byte> temp;
+            temp = frame.Resize(240, 180, Emgu.CV.CvEnum.Inter.Cubic);
+            temp.Save(@".\images\" + textBox1.Text + ".jpg");
+            textBox1.Text = "";
+            files = null;
+            images = new List<Image<Bgr, byte>>();
+            files = Directory.GetFiles(@".\images\", "*.jpg");
+            foreach (var file in files)
+            {
+                images.Add(new Image<Bgr, byte>(new Bitmap(file)));
             }
         }
     }
